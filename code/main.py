@@ -1,6 +1,7 @@
 from settings import *
 from support import *
 from random import choice
+from ui import UI
 from monster import Monster, Opponent
 from timer import Timer  # type: ignore
 
@@ -25,12 +26,20 @@ class Game:
 
         opponent_name = choice(list(MONSTER_DATA.keys()))
         self.opponent = Opponent(opponent_name, self.front_surfs[opponent_name], self.all_sprites)
+
+        self.ui = UI(self.monster)
     
 
     def import_assets(self):
         self.front_surfs = folder_importer("images", "front")
         self.back_surfs = folder_importer("images", "back")
         self.bg_surf = folder_importer("images", "other")
+
+
+    def draw_floor(self):
+        for sprite in self.all_sprites:
+            floor_rect = self.bg_surf["floor"].get_frect(center = sprite.rect.midbottom + pygame.Vector2(0, -10))
+            self.display_surface.blit(self.bg_surf["floor"], floor_rect)
 
 
     def run(self):
@@ -42,10 +51,13 @@ class Game:
            
             # update
             self.all_sprites.update(dt)
+            self.ui.update()
 
             # draw  
             self.display_surface.blit(self.bg_surf["bg"], (0,0))
+            self.draw_floor()
             self.all_sprites.draw(self.display_surface)
+            self.ui.draw()
             pygame.display.update()
         
         pygame.quit()
