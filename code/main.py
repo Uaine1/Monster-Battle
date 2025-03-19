@@ -19,7 +19,7 @@ class Game:
         self.all_sprites = pygame.sprite.Group()
 
         # Data
-        player_monster_list = ["Atrox", "Charmadillo", "Cleaf"]
+        player_monster_list = ["Atrox", "Charmadillo", "Cleaf", "Cindrill", "Gulfin", "Pluma"]
         self.player_monsters = [Monster(name, self.back_surfs[name]) for name in player_monster_list]
         self.monster = self.player_monsters[0]
         self.all_sprites.add(self.monster)
@@ -27,7 +27,7 @@ class Game:
         opponent_name = choice(list(MONSTER_DATA.keys()))
         self.opponent = Opponent(opponent_name, self.front_surfs[opponent_name], self.all_sprites)
 
-        self.ui = UI(self.monster)
+        self.ui = UI(self.monster, self.player_monsters)
     
 
     def import_assets(self):
