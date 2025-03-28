@@ -144,8 +144,6 @@ class OpponentUI:
     def __init__(self, opponent):
         self.display_surf = pygame.display.get_surface()
         self.font = pygame.font.Font(None, 30)
-        self.top = WINDOW_HEIGHT / 2 + 50
-        self.left = WINDOW_WIDTH / 2 - 100
         self.opponent = opponent
         
         

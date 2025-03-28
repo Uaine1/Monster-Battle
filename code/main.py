@@ -2,6 +2,7 @@ from settings import *
 from support import *
 from random import choice
 from ui import *
+from attack import AttackAnimationSprite
 from monster import Monster, Opponent
 from timer import Timer  # type: ignore
 
@@ -39,6 +40,10 @@ class Game:
         if state == "attack":
             self.apply_atk(self.opponent, data)
 
+        elif state == "heal":
+            self.monster.health += 50
+            AttackAnimationSprite(self.monster, self.attack_frames["green"], self.all_sprites)
+
         elif state == "run":
             self.running = False
         self.player_active = False
@@ -49,7 +54,9 @@ class Game:
         attack_data = ABILITIES_DATA[attack]
         attack_multiplier = ELEMENT_DATA[attack_data["element"]][target.element]
         target.health -= attack_data["damage"] * attack_multiplier
+        AttackAnimationSprite(target, self.attack_frames[attack_data["animation"]], self.all_sprites)
         print(f"{attack}, {target.health}/{target.max_health}")
+        
 
     def player_turn(self):
         self.player_active = True
@@ -71,6 +78,7 @@ class Game:
         self.back_surfs = folder_importer("images", "back")
         self.simple_surfs = folder_importer("images", "simple")
         self.bg_surf = folder_importer("images", "other")
+        self.attack_frames = tile_importer(4, "images", "attacks")
 
 
     def draw_floor(self):
