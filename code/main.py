@@ -3,7 +3,7 @@ from support import *
 from random import choice
 from ui import *
 from attack import AttackAnimationSprite
-from monster import Monster, Opponent
+from monster import *
 from timer import Timer  # type: ignore
 
 class Game:
@@ -34,6 +34,8 @@ class Game:
 
         # Timer
         self.timers = {"player end": Timer(1000, func = self.opponent_turn), "opponent end": Timer(1000, func = self.player_turn)}
+        
+        self.audio["music"].play(-1)
 
 
     def get_input(self, state, data = None):
@@ -43,6 +45,13 @@ class Game:
         elif state == "heal":
             self.monster.health += 50
             AttackAnimationSprite(self.monster, self.attack_frames["green"], self.all_sprites)
+            self.audio["green"].play()
+
+        elif state == "switch":
+            self.monster.kill()
+            self.monster = data
+            self.all_sprites.add(self.monster)
+            self.ui.monster = self.monster
 
         elif state == "run":
             self.running = False
@@ -55,17 +64,34 @@ class Game:
         attack_multiplier = ELEMENT_DATA[attack_data["element"]][target.element]
         target.health -= attack_data["damage"] * attack_multiplier
         AttackAnimationSprite(target, self.attack_frames[attack_data["animation"]], self.all_sprites)
+        self.audio[attack_data["animation"]].play()
         print(f"{attack}, {target.health}/{target.max_health}")
         
 
     def player_turn(self):
         self.player_active = True
+        if self.monster.health <= 0:
+            available_mons = [monster for monster in self.player_monsters if monster.health > 0]
+            if available_mons:
+                self.monster.kill()
+                self.monster = available_mons[0]
+                self.all_sprites.add(self.monster)
+                self.ui.monster = self.monster
+            else:
+                self.runnng = False
 
 
     def opponent_turn(self):
-        attack = choice(self.opponent.abilities)
-        self.apply_atk(self.monster, attack)
-        self.timers["opponent end"].activate()
+        if self.opponent.health <= 0:
+            self.player_active = True
+            self.opponent.kill()
+            monster_name = choice(list(MONSTER_DATA.keys()))
+            self.opponent = Opponent(monster_name, self.front_surfs[monster_name], self.all_sprites)
+            self.opponent_ui.opponent = self.opponent
+        else:
+            attack = choice(self.opponent.abilities)
+            self.apply_atk(self.monster, attack)
+            self.timers["opponent end"].activate()
 
     
     def update_timers(self):
@@ -74,17 +100,22 @@ class Game:
     
 
     def import_assets(self):
+        # Graphics
         self.front_surfs = folder_importer("images", "front")
         self.back_surfs = folder_importer("images", "back")
         self.simple_surfs = folder_importer("images", "simple")
         self.bg_surf = folder_importer("images", "other")
         self.attack_frames = tile_importer(4, "images", "attacks")
 
+        # Sounds
+        self.audio = audio_importer("audio")
+
 
     def draw_floor(self):
         for sprite in self.all_sprites:
-            floor_rect = self.bg_surf["floor"].get_frect(center = sprite.rect.midbottom + pygame.Vector2(0, -10))
-            self.display_surface.blit(self.bg_surf["floor"], floor_rect)
+            if isinstance(sprite, Creature):
+                floor_rect = self.bg_surf["floor"].get_frect(center = sprite.rect.midbottom + pygame.Vector2(0, -10))
+                self.display_surface.blit(self.bg_surf["floor"], floor_rect)
 
 
     def run(self):
@@ -98,8 +129,8 @@ class Game:
             self.update_timers()
             self.all_sprites.update(dt)
             if self.player_active: # responsible for ui update for the player's turn
-                self.ui.update()
-
+                self.ui.update()           
+            
             # draw  
             self.display_surface.blit(self.bg_surf["bg"], (0,0))
             self.draw_floor()

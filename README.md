@@ -2,7 +2,11 @@
 A pokemon inspired game
 
 ## Covered Topics
-- 
+- Creating menus
+- Turn base battle system
+- Attack visuals in a single png file<br>
+
+Finished date: 03/29/25
 
 ## Tutorial Used
 Here's the link for the youtube video that i used to practice and all assets used belongs to Clear Code:<br>
